@@ -31,7 +31,14 @@ class ChatRequesty(ChatOpenAI):
             openai_api_key = os.getenv('REQUESTY_API_KEY')
         if not openai_api_key:
             raise ValueError("REQUESTY_API_KEY is not set")
+        # Ugly hack: If OpenAI organization is set, temporarily remove it from the environment.
+        openai_org_id = os.environ.pop('OPENAI_ORG_ID', None)
+        openai_organization = os.environ.pop('OPENAI_ORGANIZATION', None)
         super().__init__(openai_api_key=openai_api_key, **kwargs)
+        if openai_org_id:
+            os.environ['OPENAI_ORG_ID'] = openai_org_id
+        if openai_organization:
+            os.environ['OPENAI_ORGANIZATION'] = openai_organization
 
 
 class ProviderRequesty(Provider):
@@ -77,7 +84,6 @@ class ProviderRequesty(Provider):
             "temperature": PresetValue(float, min_value=0.0, max_value=2.0),
             "openai_api_base": PresetValue(str, include_none=True),
             "openai_api_key": PresetValue(str, include_none=True, private=True),
-            "openai_organization": PresetValue(str, include_none=True, private=True),
             "request_timeout": PresetValue(int),
             "max_retries": PresetValue(int, 1, 10),
             "max_tokens": PresetValue(int, include_none=True),
